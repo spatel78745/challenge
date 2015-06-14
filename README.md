@@ -1,40 +1,27 @@
-[![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
+ External Frameworks
+- None. I studied the React tutorial and modified the example to manage movies
+- There's a server component, server.go, that I modified to support movies
+  (rather than the comment-list required by the tutorial)
 
-# React Tutorial
+Quick-Start Guide:
+- To use the app, start the server:
+  $ go run movie-server.go
 
-This is the React comment box example from [the React tutorial](http://facebook.github.io/react/docs/tutorial.html).
+- Then, in Chrome, open http://localhost:3000
 
-## To use
+- To add movies, fill in the form and click Add
 
-There are several simple server implementations included. They all serve static files from `public/` and handle requests to `comments.json` to fetch or add data. Start a server with one of the following:
+- To search for a movie, enter a partial title, genre, actor, or rating in
+  the search box and press "return." If you leave the box empty and press
+  enter, you will see a list of all the movies
 
-### Node
+Files
+- movie-server.go   - A simple HTTP server that responds to POSTs about movies
+- movies.json       - A list of movies maintained by the app
+- started           - The date I started the challenge
+- public/           - Files served by movie-server.go
+  - base.css    - I added a style for tables
+  - index.html  - Verbatim from the tutorial except it loads "challenge.js"
+  - scripts/
+    - challenge.js  - The React code that drives the app
 
-```sh
-npm install
-node server.js
-```
-
-### Python
-
-```sh
-pip install -r requirements.txt
-python server.py
-```
-
-### Ruby
-```sh
-ruby server.rb
-```
-
-### PHP
-```sh
-php server.php
-```
-
-### Go
-```sh
-go run server.go
-```
-
-And visit <http://localhost:3000/>. Try opening multiple tabs!
