@@ -1,0 +1,30 @@
+[
+    {
+        "title": "Hamlet",
+        "genre": "Drama",
+        "actors": "Kenneth Branagh, Julie Christie",
+        "year": "1996",
+        "rating": "*****"
+    },
+    {
+        "title": "Coriolanus",
+        "genre": "Drama",
+        "actors": "Ralph Fiennes, Gerard Butler",
+        "year": "2011",
+        "rating": "****"
+    },
+    {
+        "title": "Blade Runner",
+        "genre": "SciFi",
+        "actors": "Harrison Ford, Rutger Hauer",
+        "year": "1982",
+        "rating": "*****"
+    },
+    {
+        "title": "Anchorman",
+        "genre": "Comedy",
+        "actors": "Will Ferrel, Christina Applegate",
+        "year": "2004",
+        "rating": "***"
+    }
+]
