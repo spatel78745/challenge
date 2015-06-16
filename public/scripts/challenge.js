@@ -91,24 +91,25 @@ var MovieTable = React.createClass({
     }
 
     function filter(rows, pattern) {
-      console.log("filtering on: " + pattern);
       if (!pattern) return rows;
+
 
       for(i = 0, j = 0, filteredRows = []; i < rows.length; i++) {
 
-        console.log("Matching: " + rows[i].Title + " against " + pattern);
+        function preprocess(row) {
+          concat = "";
 
-        var result =
-          (rows[i].Title.toLowerCase().search(pattern)  != -1) ||
-          (rows[i].Genre.toLowerCase().search(pattern)  != -1) ||
-          (rows[i].Actors.toLowerCase().search(pattern) != -1) ||
-          (rows[i].Year.toLowerCase().search(pattern)   != -1) ||
-          (rows[i].Rating.toLowerCase().search(pattern) != -1);
+          for(field in row) {
+            concat += row[field];
+          }
 
-        console.log("Result: " + result);
+          return concat.trim().toLowerCase().replace(/ +/, " ");
+        }
 
-        if (result) {
-          console.log("index " + i + " with title " + rows[i].Title + " matches " + pattern);
+        var preprocessed = preprocess(rows[i]);
+        var match = preprocess(rows[i]).search(preprocess(pattern));
+
+        if (match != -1) {
           filteredRows[j] = rows[i];
           j++;
         }
