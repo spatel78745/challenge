@@ -93,60 +93,67 @@ var Tokenizer = function(str) {
   }
 }
 
-function makeMatcher(tokenizer)
-{
-  function subMatcher(tokenizer) {
-    var subpattern = "";
-    var token = "";
+function subMatcher(tokenizer) {
+  var subpattern = "";
+  var token = "";
 
-    console.log("Processing parenthesized expression");
+  console.log("Processing parenthesized expression");
 
-    token = tokenizer.get();
+  token = tokenizer.get();
+  console.log("subMatcher token: " + token.type + " " + token.val);
+  while (token.type != "CLOSE") {
     console.log("subMatcher token: " + token.type + " " + token.val);
-    while (token.type != "CLOSE") {
-      console.log("subMatcher token: " + token.type + " " + token.val);
-      if (token == "EOF") {
-        console.log("Error: unbalanced parentheses in [ " + tokenizer.getStr + " ]");
-        return new FalseExp();
-      }
-
-      subpattern = subpattern + " " +  token.val;
-
-      console.log("looking for CLOSE. subpattern: " + subpattern);
-      token = tokenizer.get();
+    if (token == "EOF") {
+      console.log("Error: unbalanced parentheses in [ " + tokenizer.getStr + " ]");
+      return new FalseExp();
     }
 
-    subpattern = subpattern.trim();
+    subpattern = subpattern + " " +  token.val;
 
-    console.log("parenthesized subpattern: " + subpattern);
-
-    var subTokenizer = new Tokenizer(subpattern);
-
-    return makeMatcher(subTokenizer);
+    console.log("looking for CLOSE. subpattern: " + subpattern);
+    token = tokenizer.get();
   }
+
+  subpattern = subpattern.trim();
+
+  console.log("parenthesized subpattern: " + subpattern);
+
+  var subTokenizer = new Tokenizer(subpattern);
+
+  return makeMatcher(subTokenizer);
+}
+
+function makeMatcher(tokenizer)
+{
 
   var token = tokenizer.get();
   console.log("token: " + token.type + " " + token.val);
+  var subExp;
 
   if (token.type == "OPEN") {
-    console.log("Calling subMatcher");
-    return subMatcher(tokenizer);
-  }
-
-  if (token.type != "STR") {
-    console.log("Error: expected string, got [ " + token.val + " ]");
+    console.log("Start parenthesized expression");
+    subExp = makeMatcher(tokenizer);
+  } else if (token.type == "STR") {
+    subExp = new StrExp(token.val);
+    console.log("new StrExp: " + subExp.getOps());
+  } else {
+    console.log("Error: expected string or parenthesis, got [ " + token.val + " ]");
     return new TrueExp();
   }
-
-  var subExp = new StrExp(token.val);
-  console.log("new StrExp: " + subExp.getOps());
 
   var lookahead = tokenizer.peek();
   console.log("lookahead: " + lookahead.type + " " + lookahead.val);
 
-  if (lookahead.type == "EOF")
+  if (lookahead.type == "EOF") 
   {
     console.log("No more tokens");
+    return subExp;
+  }
+
+  if (lookahead.type == "CLOSE")
+  {
+    console.log("End parenthesized expression");
+    tokenizer.get();
     return subExp;
   }
 
@@ -189,13 +196,13 @@ console.log("s3 || s4: " +  o2.eval(context));
 var a2 = new AndExp(o1, o2);
 console.log("o1 && o2: " +  a2.eval(context));
 
-var pattern = "( 456 | 123 ) & ( be | 456 )";
+var pattern = "( ( 456 ) & question ) | troubles";
 var token = { type: "", val: "" };
 
-tokenizer = new Tokenizer(pattern);
-matcher = makeMatcher(tokenizer);
+//tokenizer = new Tokenizer(pattern);
+//matcher = makeMatcher(tokenizer);
 
-console.log("Made matcher: " + matcher);
+//console.log("Made matcher: " + matcher);
 
 console.log("Does it match? " + match(pattern, context));
 
