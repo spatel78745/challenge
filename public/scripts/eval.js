@@ -157,17 +157,6 @@ function makeMatcher(tokenizer)
     return subExp;
   }
 
-//  tokenizer.get();
-//
-//  if (lookahead.type == "STR" || lookahead.type == "AND" ) {
-//    return new AndExp(subExp, makeMatcher(tokenizer));
-//  }
-//
-//  if (lookahead.type == "OR") {
-//    return new OrExp(subExp , makeMatcher(tokenizer));
-//  }
-
-
   if (lookahead.type == "STR") {
     return new AndExp(subExp, makeMatcher(tokenizer));
   }
@@ -213,6 +202,8 @@ console.log("o1 && o2: " +  a2.eval(context));
 
 var p1 = "( to & be ) | or )";
 var p2 = "( to be ) o1 )";
+var p3 = "to be"
+var p3 = "to xx"
 
 //tokenizer = new Tokenizer(pattern);
 //matcher = makeMatcher(tokenizer);
@@ -221,6 +212,7 @@ var p2 = "( to be ) o1 )";
 
 console.log("Does it match? " + match(p1, context));
 console.log("Does it match? " + match(p2, context));
+console.log("Does it match? " + match(p3, context));
 
 //matcher.eval(context);
 

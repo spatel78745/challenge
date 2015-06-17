@@ -1,3 +1,177 @@
+////////////////////////// Begin Pattern matcher ///////////////////////////
+var AndExp = function(op1, op2) {
+  this.op1 = op1;
+  this.op2 = op2;
+  this.eval = function(context) {
+    var that = this;
+
+    return that.op1.eval(context) && that.op2.eval(context);
+  }
+};
+
+var OrExp = function(op1, op2) {
+  this.op1 = op1;
+  this.op2 = op2;
+
+  this.eval = function(context) {
+    var that = this;
+
+    return that.op1.eval(context) || that.op2.eval(context);
+  }
+};
+
+var StrExp = function(op1) {
+  this.op1 = op1;
+
+  this.eval = function(context) {
+    var that = this;
+
+    return context.search(that.op1) != -1
+  }
+
+  this.getOps = function() {
+    var that = this;
+
+    return that.op1;
+  }
+}
+
+var TrueExp = function() {
+  this.eval = function(context) {
+    return true;
+  }
+}
+
+var FalseExp = function() {
+  this.eval = function(context) {
+    return false;
+  }
+}
+
+var Tokenizer = function(str) {
+  this.str = str;
+  this.lexemes = str.split(" ");
+  this.index = 0;
+
+  this.peek = function() {
+    var that = this;
+
+    if (that.index >= that.lexemes.length) return { type: "EOF", val: "" };
+
+    var lexeme = that.lexemes[that.index];
+    var c = lexeme.charAt(0);
+
+    if      (c == '&') token = { type: "AND"   , val: "&"    } ;
+    else if (c == '|') token = { type: "OR"    , val: "|"    } ;
+    else if (c == '(') token = { type: "OPEN"  , val: "("    } ;
+    else if (c == ')') token = { type: "CLOSE" , val: ")"    } ;
+    else               token = { type: "STR"   , val: lexeme } ;
+
+    return token;
+  }
+
+  this.get = function() {
+    var that = this;
+
+    token = that.peek();
+    if (token.type != "EOF") that.index++;
+
+    return token;
+  }
+
+  this.getStr = function() {
+    var that = this;
+
+    return that.str;
+  }
+}
+
+function subMatcher(tokenizer) {
+  var subpattern = "";
+  var token = "";
+
+  console.log("Processing parenthesized expression");
+
+  token = tokenizer.get();
+  console.log("subMatcher token: " + token.type + " " + token.val);
+  while (token.type != "CLOSE") {
+    console.log("subMatcher token: " + token.type + " " + token.val);
+    if (token == "EOF") {
+      console.log("Error: unbalanced parentheses in [ " + tokenizer.getStr + " ]");
+      return new FalseExp();
+    }
+
+    subpattern = subpattern + " " +  token.val;
+
+    console.log("looking for CLOSE. subpattern: " + subpattern);
+    token = tokenizer.get();
+  }
+
+  subpattern = subpattern.trim();
+
+  console.log("parenthesized subpattern: " + subpattern);
+
+  var subTokenizer = new Tokenizer(subpattern);
+
+  return makeMatcher(subTokenizer);
+}
+
+function makeMatcher(tokenizer)
+{
+
+  var token = tokenizer.get();
+  console.log("token: " + token.type + " " + token.val);
+  var subExp;
+
+  if (token.type == "OPEN") {
+    console.log("Start parenthesized expression");
+    subExp = makeMatcher(tokenizer);
+  } else if (token.type == "STR") {
+    subExp = new StrExp(token.val);
+    console.log("new StrExp: " + subExp.getOps());
+  } else {
+    console.log("Error: expected string or parenthesis, got [ " + token.val + " ]");
+    return new TrueExp();
+  }
+
+  var lookahead = tokenizer.peek();
+  console.log("lookahead: " + lookahead.type + " " + lookahead.val);
+
+  if (lookahead.type == "EOF")
+  {
+    console.log("No more tokens");
+    return subExp;
+  }
+
+  if (lookahead.type == "CLOSE")
+  {
+    console.log("End parenthesized expression");
+    tokenizer.get();
+    return subExp;
+  }
+
+  if (lookahead.type == "STR") {
+    return new AndExp(subExp, makeMatcher(tokenizer));
+  }
+
+  tokenizer.get();
+
+  if (lookahead.type == "AND") {
+    return new AndExp(subExp, makeMatcher(tokenizer));
+  }
+
+  if (lookahead.type == "OR") {
+    return new OrExp(subExp , makeMatcher(tokenizer));
+  }
+}
+
+function match(pattern, context)
+{
+  var tokenizer = new Tokenizer(pattern);
+  var matcher = makeMatcher(tokenizer);
+
+  return matcher.eval(context);
+}
 var Table = React.createClass({
     render: function render() {
         var _self = this;
@@ -19,6 +193,7 @@ var Table = React.createClass({
     }
 
 });
+////////////////////////// End Pattern matcher ///////////////////////////
 
 var MovieCollectionApp = React.createClass({
     getInitialState: function() {
@@ -107,9 +282,10 @@ var MovieTable = React.createClass({
         }
 
         var preprocessed = preprocess(rows[i]);
-        var match = preprocess(rows[i]).search(preprocess(pattern));
+//        var match = preprocess(rows[i]).search(preprocess(pattern));
+        var isMatch = match(preprocess(pattern), preprocess(rows[i]));
 
-        if (match != -1) {
+        if (isMatch) {
           filteredRows[j] = rows[i];
           j++;
         }
@@ -142,8 +318,6 @@ var MovieTable = React.createClass({
     );
   }
 });
-
-
 
 var Movie = React.createClass({
   render: function() {
