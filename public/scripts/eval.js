@@ -144,7 +144,7 @@ function makeMatcher(tokenizer)
   var lookahead = tokenizer.peek();
   console.log("lookahead: " + lookahead.type + " " + lookahead.val);
 
-  if (lookahead.type == "EOF") 
+  if (lookahead.type == "EOF")
   {
     console.log("No more tokens");
     return subExp;
@@ -157,9 +157,24 @@ function makeMatcher(tokenizer)
     return subExp;
   }
 
+//  tokenizer.get();
+//
+//  if (lookahead.type == "STR" || lookahead.type == "AND" ) {
+//    return new AndExp(subExp, makeMatcher(tokenizer));
+//  }
+//
+//  if (lookahead.type == "OR") {
+//    return new OrExp(subExp , makeMatcher(tokenizer));
+//  }
+
+
+  if (lookahead.type == "STR") {
+    return new AndExp(subExp, makeMatcher(tokenizer));
+  }
+
   tokenizer.get();
 
-  if (lookahead.type == "STR" || lookahead.type == "AND" ) {
+  if (lookahead.type == "AND") {
     return new AndExp(subExp, makeMatcher(tokenizer));
   }
 
@@ -196,15 +211,16 @@ console.log("s3 || s4: " +  o2.eval(context));
 var a2 = new AndExp(o1, o2);
 console.log("o1 && o2: " +  a2.eval(context));
 
-var pattern = "( ( 456 ) & question ) | troubles";
-var token = { type: "", val: "" };
+var p1 = "( to & be ) | or )";
+var p2 = "( to be ) o1 )";
 
 //tokenizer = new Tokenizer(pattern);
 //matcher = makeMatcher(tokenizer);
 
 //console.log("Made matcher: " + matcher);
 
-console.log("Does it match? " + match(pattern, context));
+console.log("Does it match? " + match(p1, context));
+console.log("Does it match? " + match(p2, context));
 
 //matcher.eval(context);
 
