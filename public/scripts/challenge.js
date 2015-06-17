@@ -86,36 +86,6 @@ var Tokenizer = function(str) {
   }
 }
 
-function subMatcher(tokenizer) {
-  var subpattern = "";
-  var token = "";
-
-  console.log("Processing parenthesized expression");
-
-  token = tokenizer.get();
-  console.log("subMatcher token: " + token.type + " " + token.val);
-  while (token.type != "CLOSE") {
-    console.log("subMatcher token: " + token.type + " " + token.val);
-    if (token == "EOF") {
-      console.log("Error: unbalanced parentheses in [ " + tokenizer.getStr + " ]");
-      return new FalseExp();
-    }
-
-    subpattern = subpattern + " " +  token.val;
-
-    console.log("looking for CLOSE. subpattern: " + subpattern);
-    token = tokenizer.get();
-  }
-
-  subpattern = subpattern.trim();
-
-  console.log("parenthesized subpattern: " + subpattern);
-
-  var subTokenizer = new Tokenizer(subpattern);
-
-  return makeMatcher(subTokenizer);
-}
-
 function makeMatcher(tokenizer)
 {
 
@@ -259,8 +229,6 @@ var MovieTable = React.createClass({
     var movies=this.props.data;
     var tableCols=["Title", "Genre", "Actors", "Year", "Rating"];
 
-    console.log("INITIAL STATE: " + this.state.pattern);
-
     function compare(row1, row2) {
       return row1.Title.localeCompare(row2.Title);
     }
@@ -373,15 +341,24 @@ var MovieForm = React.createClass({
 });
 
 var MovieSearch = React.createClass({
-  handleSearch: function(e) {
-    e.preventDefault();
-
+  incSearch: function() {
     var pattern = React.findDOMNode(this.refs.pattern).value.trim();
     console.log("pattern: " + pattern);
 
     this.props.onMovieSearch(pattern);
+  },
+
+
+  handleSearch: function(e) {
+    e.preventDefault();
+
+    this.incSearch();
 
     return;
+  },
+
+  componentDidMount: function() {
+    setInterval(this.incSearch, 500);
   },
 
   render: function() {
@@ -390,7 +367,7 @@ var MovieSearch = React.createClass({
         <h3>Search</h3>
         <h4>Enter a partial title, genre, actor, year or rating</h4>
         <form className="movieSearch" onSubmit={this.handleSearch}>
-          <input type="search" incremental="incremental" onsearch={this.handleSearch} ref="pattern" />
+          <input type="search" onsearch={this.handleSearch} ref="pattern" />
         </form>
       </div>
     );
