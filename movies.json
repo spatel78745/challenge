@@ -26,5 +26,12 @@
         "actors": "Will Ferrel, Christina Applegate",
         "year": "2004",
         "rating": "***"
+    },
+    {
+        "title": "ConAir",
+        "genre": "Action",
+        "actors": "Mel Gibson",
+        "year": "2010",
+        "rating": "**"
     }
 ]

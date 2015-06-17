@@ -50,7 +50,7 @@ var FalseExp = function() {
 
 var Tokenizer = function(str) {
   this.str = str;
-  this.lexemes = str.split(" ");
+  this.lexemes = str.split(/[" "]/);
   this.index = 0;
 
   this.peek = function() {
@@ -365,7 +365,12 @@ var MovieSearch = React.createClass({
     return (
       <div className="newMovie">
         <h3>Search</h3>
-        <h4>Enter a partial title, genre, actor, year or rating</h4>
+        <p><b>Enter a partial title, genre, actor, year or rating or an expression. Examples:</b></p>
+        <ul>
+          <li>corio</li> 
+          <li>co & 2004</li>
+          <li>co & ( ( ** | 2004 ) & anch )</li>
+        </ul>
         <form className="movieSearch" onSubmit={this.handleSearch}>
           <input type="search" onsearch={this.handleSearch} ref="pattern" />
         </form>
