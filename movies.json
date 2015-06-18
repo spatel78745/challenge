@@ -33,5 +33,12 @@
         "actors": "Mel Gibson",
         "year": "2010",
         "rating": "**"
+    },
+    {
+        "title": "Star Trek: The Wrath of Khan",
+        "genre": "SciFi",
+        "actors": "William Shatner, Leonard Nimoy",
+        "year": "1989",
+        "rating": "*****"
     }
 ]

@@ -367,7 +367,7 @@ var MovieSearch = React.createClass({
         <h3>Search</h3>
         <p><b>Enter a partial title, genre, actor, year or rating or an expression. Examples:</b></p>
         <ul>
-          <li>corio</li> 
+          <li>corio</li>
           <li>co & 2004</li>
           <li>co & ( ( ** | 2004 ) & anch )</li>
         </ul>
