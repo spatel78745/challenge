@@ -40,5 +40,19 @@
         "actors": "William Shatner, Leonard Nimoy",
         "year": "1989",
         "rating": "*****"
+    },
+    {
+        "title": "Road Warrior",
+        "genre": "Action",
+        "actors": "Mel Gibson",
+        "year": "1980",
+        "rating": "*****"
+    },
+    {
+        "title": "Lord Of The Rings",
+        "genre": "Fantasy",
+        "actors": "Brad Pitt",
+        "year": "2001",
+        "rating": "*"
     }
 ]

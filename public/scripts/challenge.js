@@ -163,11 +163,81 @@ var Table = React.createClass({
     }
 
 });
+
 ////////////////////////// End Pattern matcher ///////////////////////////
+function drawPieChart(ctx, width, title, stats) {
+  var i;
+
+  var x = y = radius = width / 4;
+
+  colors = new Array("DarkGreen", "DarkKhaki", "DarkMagenta", "DarkOrange",
+      "DarkRed", "DarkSalmon");
+
+  function drawTitle() {
+    ctx.font ="12px Courier";
+    ctx.textAlign = "center";
+    ctx.fillText(title, width / 2, 12);
+  }
+
+  drawLegend = function() {
+    var x = width * (2/3), y = 24, i;
+
+    ctx.font ="12px Courier";
+    ctx.textAlign = "start";
+
+    i = 0;
+    for (var key in stats) {
+      if (stats.hasOwnProperty(key) && key != "total") {
+        var fraction = stats[key] / stats["total"];
+        ctx.fillStyle = colors[i];
+        ctx.fillText(key + " " + Math.ceil(fraction * 100) + "%", x, y);
+        y += 12;
+        i++;
+      }
+    }
+  }
+
+  function drawWedge(sAngle, eAngle, color) {
+    function rad_to_deg(rad) { return 180 / Math.PI * rad; }
+
+    console.log("draw: x= " + x + " y= " + y + " sAngle= " + rad_to_deg(sAngle) + " eAngle= "
+        + rad_to_deg(eAngle) + " diff: " + rad_to_deg(eAngle - sAngle) + " color= " + color);
+
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.arc(x, y, radius, sAngle, eAngle);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function drawPie() {
+    var sAngle = 0;
+
+    var idx = 0;
+    for (var key in stats) {
+      if (stats.hasOwnProperty(key) && key != "total") {
+        var fraction = stats[key] / stats["total"];
+        console.log("stats[" + key + "] = " + stats[key] + " fraction: " + fraction);
+        var eAngle = sAngle + fraction * 2 * Math.PI;
+
+        drawWedge(sAngle, eAngle, colors[idx]);
+
+        sAngle = eAngle;
+        idx++;
+      }
+    }
+  }
+
+  drawTitle();
+  drawLegend();
+  drawPie();
+}
+///////////////////////////////////// END PIE CHART
 
 var MovieCollectionApp = React.createClass({
     getInitialState: function() {
-      return {data: []};
+      return {data: [], stats: []};
     },
 
   loadMoviesFromServer: function() {
@@ -211,6 +281,7 @@ var MovieCollectionApp = React.createClass({
         <MovieForm onMovieSubmit={this.handleMovieSubmit} />
         <hr />
         <MovieTable data={this.state.data} />
+        <MovieAnalytics data={this.state.data}/>
       </div>
     );
   }
@@ -376,6 +447,63 @@ var MovieSearch = React.createClass({
         </form>
       </div>
     );
+  }
+});
+
+var MovieAnalytics = React.createClass({
+
+  render: function() {
+    return (
+      <div className="movieAnalytics">
+        <hr />
+        <h3>Analytics</h3>
+        <MovieGenreAnalytics data={this.props.data} />
+      </div>
+    );
+  }
+});
+
+var MovieGenreAnalytics = React.createClass({
+
+  componentDidMount: function() {
+    var context = this.getDOMNode().getContext('2d');
+    this.paint(context);
+  },
+
+  componentDidUpdate: function() {
+    var context = this.getDOMNode().getContext('2d');
+    context.clearRect(0, 0, 200, 200);
+    this.paint(context);
+  },
+
+  paint: function(context) {
+    var movies=this.props.data;
+    var stats = {};
+
+    console.log("Computing genre stats");
+    stats.total = 0;
+    for (var i = 0; i < movies.length; i++) {
+      var genre = movies[i].genre;
+
+      stats[genre] = (stats.hasOwnProperty(genre) ? stats[genre] + 1 : 1);
+      stats.total++;
+    }
+
+    for (var key in stats) {
+      if (stats.hasOwnProperty(key)) {
+        console.log("key: " + key + " val: " + stats[key]);
+      }
+    }
+
+    console.log("total: " + stats.total);
+
+    context.save();
+    drawPieChart(context, 400, "Genres", stats);
+    context.restore();
+  },
+
+  render: function() {
+    return <canvas width={400} height={200} />
   }
 });
 
