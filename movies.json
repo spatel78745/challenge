@@ -54,5 +54,19 @@
         "actors": "Brad Pitt",
         "year": "2001",
         "rating": "*"
+    },
+    {
+        "title": "Harry Potter",
+        "genre": "Fantasy",
+        "actors": "Actor1, Actress2",
+        "year": "2009",
+        "rating": "***"
+    },
+    {
+        "title": "Highlander",
+        "genre": "Fantasy",
+        "actors": "Christopher Lambert",
+        "year": "1985",
+        "rating": "****"
     }
 ]

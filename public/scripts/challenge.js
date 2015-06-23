@@ -83,11 +83,11 @@ var Tokenizer = function(str) {
 }
 
 var Exp = function(type, op1, op2) {
-  if (type == "&"    ) { return function(context) { console.log("Exp: &, context: " + context + " result: ", op1(context), op2(context)); return op1(context) && op2(context); } }
+  if (type == "&"    ) { return function(context) { return op1(context) && op2(context); } }
   if (type == "|"    ) { return function(context) { return op1(context) || op2(context); } }
   if (type == "TRUE" ) { return function(context) { return true                        ; } }
   if (type == "FALSE") { return function(context) { return false                       ; } }
-  if (type == "STR"  ) { return function(context) { console.log("Exp: STR, context: " + context); return context.search(op1) != -1   ; } }
+  if (type == "STR"  ) { return function(context) { return context.search(op1) != -1   ; } }
 }
 
 function makeMatcher(tokenizer) {
@@ -95,7 +95,7 @@ function makeMatcher(tokenizer) {
   var subExp, lookahead;
 
   if      (token.type == "(")   { subExp = makeMatcher(tokenizer);    }
-  else if (token.type == "STR") { console.log("subExp: STR, " + token.val); subExp = new Exp("STR", token.val); }
+  else if (token.type == "STR") { subExp = new Exp("STR", token.val); }
   else                          { return new Exp("TRUE");             }
 
   lookahead = tokenizer.peek();
@@ -103,7 +103,6 @@ function makeMatcher(tokenizer) {
   if (lookahead.type == "EOF") { return subExp; }
   if (lookahead.type == ")")
   {
-    console.log("close paren");
     tokenizer.get();
     return subExp;
   }
@@ -179,8 +178,8 @@ function drawPieChart(ctx, width, title, stats) {
   function drawWedge(sAngle, eAngle, color) {
     function rad_to_deg(rad) { return 180 / Math.PI * rad; }
 
-    console.log("draw: x= " + x + " y= " + y + " sAngle= " + rad_to_deg(sAngle) + " eAngle= "
-        + rad_to_deg(eAngle) + " diff: " + rad_to_deg(eAngle - sAngle) + " color= " + color);
+    //console.log("draw: x= " + x + " y= " + y + " sAngle= " + rad_to_deg(sAngle) + " eAngle= "
+    //    + rad_to_deg(eAngle) + " diff: " + rad_to_deg(eAngle - sAngle) + " color= " + color);
 
     ctx.fillStyle = color;
     ctx.beginPath();
@@ -197,7 +196,7 @@ function drawPieChart(ctx, width, title, stats) {
     for (var key in stats) {
       if (stats.hasOwnProperty(key) && key != "total") {
         var fraction = stats[key] / stats["total"];
-        console.log("stats[" + key + "] = " + stats[key] + " fraction: " + fraction);
+        //console.log("stats[" + key + "] = " + stats[key] + " fraction: " + fraction);
         var eAngle = sAngle + fraction * 2 * Math.PI;
 
         drawWedge(sAngle, eAngle, colors[idx]);
@@ -300,7 +299,6 @@ var MovieTable = React.createClass({
         }
 
         var preprocessed = preprocess(rows[i]);
-        console.log("preprocessed: " + preprocessed);
 //        var match = preprocess(rows[i]).search(preprocess(pattern));
         var isMatch = match(preprocess(pattern), preprocess(rows[i]));
 
@@ -394,7 +392,6 @@ var MovieForm = React.createClass({
 var MovieSearch = React.createClass({
   incSearch: function() {
     var pattern = React.findDOMNode(this.refs.pattern).value.trim();
-    console.log("pattern: " + pattern);
 
     this.props.onMovieSearch(pattern);
   },
@@ -421,7 +418,6 @@ var MovieSearch = React.createClass({
           <li>corio</li>
           <li>corio & 2004</li>
           <li>(scifi | drama) & ralph</li>
-          <li></li>
         </ul>
         <form className="movieSearch" onSubmit={this.handleSearch}>
           <input type="search" onsearch={this.handleSearch} ref="pattern" />
