@@ -419,8 +419,9 @@ var MovieSearch = React.createClass({
         <p><b>Enter a partial title, genre, actor, year or rating or an expression. Examples:</b></p>
         <ul>
           <li>corio</li>
-          <li>co & 2004</li>
-          <li>co & ( ( ** | 2004 ) & anch )</li>
+          <li>corio & 2004</li>
+          <li>(scifi | drama) & ralph</li>
+          <li></li>
         </ul>
         <form className="movieSearch" onSubmit={this.handleSearch}>
           <input type="search" onsearch={this.handleSearch} ref="pattern" />
