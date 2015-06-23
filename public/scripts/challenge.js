@@ -1,138 +1,116 @@
 ////////////////////////// Begin Pattern matcher ///////////////////////////
-var AndExp = function(op1, op2) {
-  this.op1 = op1;
-  this.op2 = op2;
-  this.eval = function(context) {
-    var that = this;
 
-    return that.op1.eval(context) && that.op2.eval(context);
-  }
-};
+var Token = function(type, val) {
+  return {
+    type    : type,
+    val     : val,
+    toString: function() { return "type: " + this.type + " val: " + this.val; }
+  };
 
-var OrExp = function(op1, op2) {
-  this.op1 = op1;
-  this.op2 = op2;
-
-  this.eval = function(context) {
-    var that = this;
-
-    return that.op1.eval(context) || that.op2.eval(context);
-  }
-};
-
-var StrExp = function(op1) {
-  this.op1 = op1;
-
-  this.eval = function(context) {
-    var that = this;
-
-    return context.search(that.op1) != -1
-  }
-
-  this.getOps = function() {
-    var that = this;
-
-    return that.op1;
-  }
-}
-
-var TrueExp = function() {
-  this.eval = function(context) {
-    return true;
-  }
-}
-
-var FalseExp = function() {
-  this.eval = function(context) {
-    return false;
-  }
+  return token;
 }
 
 var Tokenizer = function(str) {
-  this.str = str;
-  this.lexemes = str.split(/[" "]/);
-  this.index = 0;
+  // Private
+  var index = 0;
+  var lookahead;
 
-  this.peek = function() {
-    var that = this;
+  var getc = function() {
+    if (index < str.length) {
+      var c = str.charAt(index);
+      index++;
+      return c;
+    }
+    return false;
+  }
 
-    if (that.index >= that.lexemes.length) return { type: "EOF", val: "" };
+  var ungetc = function ungetc() { index--; }
 
-    var lexeme = that.lexemes[that.index];
-    var c = lexeme.charAt(0);
+  // Public
+  var get = function() {
+    var c, token, val;
 
-    if      (c == '&') token = { type: "AND"   , val: "&"    } ;
-    else if (c == '|') token = { type: "OR"    , val: "|"    } ;
-    else if (c == '(') token = { type: "OPEN"  , val: "("    } ;
-    else if (c == ')') token = { type: "CLOSE" , val: ")"    } ;
-    else               token = { type: "STR"   , val: lexeme } ;
+    function isOp(c)   { return c.match(/[ &|()]/); }
+    function isText(c) { return !isOp(c);           }
+
+    if (lookahead) {
+      token     = lookahead;
+      lookahead = false;
+
+      return token;
+    }
+
+    if (!(val = c = getc())) {
+      token = new Token("EOF", "EOF");
+    } else if (isText(c)) {
+      while((c = getc()) && isText(c)) {
+        val += c;
+      }
+      token = new Token("STR", val);
+    } else if (c == " ") {
+      c = getc();
+      if (!c) {
+        token = new Token("EOF", "EOF");
+      } else if (isOp(c)) {
+        token = new Token(c, c);
+        while((c = getc()) && (c == ' '));
+      } else {
+        token = new Token("&", "&");
+      }
+    } else if (isOp(c)) {
+        token = new Token(c, c);
+        while((c = getc()) && (c == ' '));
+    } else {
+      console.log("BUG: Unknown case");
+      token = new Token("EOF", "EOF");
+    }
+
+    if (c) ungetc();
 
     return token;
   }
 
-  this.get = function() {
-    var that = this;
+  var peek = function() {
+    lookahead = get();
 
-    token = that.peek();
-    if (token.type != "EOF") that.index++;
-
-    return token;
+    return lookahead;
   }
 
-  this.getStr = function() {
-    var that = this;
-
-    return that.str;
+  return {
+    get : get,
+    peek: peek
   }
 }
 
-function makeMatcher(tokenizer)
-{
+var Exp = function(type, op1, op2) {
+  if (type == "&"    ) { return function(context) { console.log("Exp: &, context: " + context + " result: ", op1(context), op2(context)); return op1(context) && op2(context); } }
+  if (type == "|"    ) { return function(context) { return op1(context) || op2(context); } }
+  if (type == "TRUE" ) { return function(context) { return true                        ; } }
+  if (type == "FALSE") { return function(context) { return false                       ; } }
+  if (type == "STR"  ) { return function(context) { console.log("Exp: STR, context: " + context); return context.search(op1) != -1   ; } }
+}
 
+function makeMatcher(tokenizer) {
   var token = tokenizer.get();
-  console.log("token: " + token.type + " " + token.val);
-  var subExp;
+  var subExp, lookahead;
 
-  if (token.type == "OPEN") {
-    console.log("Start parenthesized expression");
-    subExp = makeMatcher(tokenizer);
-  } else if (token.type == "STR") {
-    subExp = new StrExp(token.val);
-    console.log("new StrExp: " + subExp.getOps());
-  } else {
-    console.log("Error: expected string or parenthesis, got [ " + token.val + " ]");
-    return new TrueExp();
-  }
+  if      (token.type == "(")   { subExp = makeMatcher(tokenizer);    }
+  else if (token.type == "STR") { console.log("subExp: STR, " + token.val); subExp = new Exp("STR", token.val); }
+  else                          { return new Exp("TRUE");             }
 
-  var lookahead = tokenizer.peek();
-  console.log("lookahead: " + lookahead.type + " " + lookahead.val);
+  lookahead = tokenizer.peek();
 
-  if (lookahead.type == "EOF")
+  if (lookahead.type == "EOF") { return subExp; }
+  if (lookahead.type == ")")
   {
-    console.log("No more tokens");
-    return subExp;
-  }
-
-  if (lookahead.type == "CLOSE")
-  {
-    console.log("End parenthesized expression");
+    console.log("close paren");
     tokenizer.get();
     return subExp;
   }
 
-  if (lookahead.type == "STR") {
-    return new AndExp(subExp, makeMatcher(tokenizer));
-  }
-
   tokenizer.get();
 
-  if (lookahead.type == "AND") {
-    return new AndExp(subExp, makeMatcher(tokenizer));
-  }
-
-  if (lookahead.type == "OR") {
-    return new OrExp(subExp , makeMatcher(tokenizer));
-  }
+  return new Exp(lookahead.type, subExp, makeMatcher(tokenizer));
 }
 
 function match(pattern, context)
@@ -140,8 +118,10 @@ function match(pattern, context)
   var tokenizer = new Tokenizer(pattern);
   var matcher = makeMatcher(tokenizer);
 
-  return matcher.eval(context);
+  return matcher(context);
 }
+////////////////////////// End Pattern matcher ///////////////////////////
+
 var Table = React.createClass({
     render: function render() {
         var _self = this;
@@ -164,7 +144,6 @@ var Table = React.createClass({
 
 });
 
-////////////////////////// End Pattern matcher ///////////////////////////
 function drawPieChart(ctx, width, title, stats) {
   var i;
 
@@ -321,6 +300,7 @@ var MovieTable = React.createClass({
         }
 
         var preprocessed = preprocess(rows[i]);
+        console.log("preprocessed: " + preprocessed);
 //        var match = preprocess(rows[i]).search(preprocess(pattern));
         var isMatch = match(preprocess(pattern), preprocess(rows[i]));
 
